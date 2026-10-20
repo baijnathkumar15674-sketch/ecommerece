@@ -1,0 +1,174 @@
+
+import {
+  Injectable,
+  UnauthorizedException,
+  ServiceUnavailableException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service.js';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  private configuredEmail(): string {
+    const email = this.configService.get<string>('ADMIN_EMAIL');
+    if (!email) {
+      throw new ServiceUnavailableException(
+        'Admin authentication is not configured.',
+      );
+    }
+    return email.trim().toLowerCase();
+  }
+
+  private async getCredential() {
+    let credential = await this.prisma.adminCredential.findUnique({
+      where: { id: 'default' },
+    });
+
+    if (!credential) {
+      const email = this.configuredEmail();
+      const passwordHash =
+        this.configService.get<string>('ADMIN_PASSWORD_HASH');
+
+      if (!passwordHash) {
+        throw new ServiceUnavailableException(
+          'Admin password is not configured.',
+        );
+      }
+
+      try {
+        credential = await this.prisma.adminCredential.create({
+          data: {
+            id: 'default',
+            email,
+            passwordHash,
+            tokenVersion: 0,
+          },
+        });
+      } catch {
+        credential = await this.prisma.adminCredential.findUnique({
+          where: { id: 'default' },
+        });
+      }
+    }
+
+    if (!credential) {
+      throw new ServiceUnavailableException(
+        'Admin credentials could not be initialized.',
+      );
+    }
+
+    return credential;
+  }
+
+  private async issueToken(email: string, tokenVersion: number) {
+    const accessToken = await this.jwtService.signAsync({
+      sub: email,
+      role: 'admin',
+      tokenVersion,
+    });
+
+    return { accessToken, tokenType: 'Bearer', expiresIn: '15m' };
+  }
+
+  async login(email: string, password: string) {
+    const credential = await this.getCredential();
+
+    if (
+      email.trim().toLowerCase() !== credential.email.toLowerCase() ||
+      !(await bcrypt.compare(password, credential.passwordHash))
+    ) {
+      throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    return this.issueToken(credential.email, credential.tokenVersion);
+  }
+
+  async changePassword(
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const credential = await this.getCredential();
+
+    if (email.toLowerCase() !== credential.email.toLowerCase()) {
+      throw new UnauthorizedException('Admin access is required.');
+    }
+
+    if (!(await bcrypt.compare(currentPassword, credential.passwordHash))) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    if (currentPassword === newPassword) {
+      throw new BadRequestException(
+        'The new password must differ from the current password.',
+      );
+    }
+
+    await this.prisma.adminCredential.update({
+      where: { id: credential.id },
+      data: {
+        passwordHash: await bcrypt.hash(newPassword, 12),
+        tokenVersion: { increment: 1 },
+      },
+    });
+
+    return {
+      message:
+        'Password changed successfully. Sign in again with your new password.',
+    };
+  }
+
+  async changeEmail(
+    currentEmail: string,
+    currentPassword: string,
+    newEmail: string,
+  ) {
+    const credential = await this.getCredential();
+    const normalizedEmail = newEmail.trim().toLowerCase();
+
+    if (currentEmail.toLowerCase() !== credential.email.toLowerCase()) {
+      throw new UnauthorizedException('Admin access is required.');
+    }
+
+    if (!(await bcrypt.compare(currentPassword, credential.passwordHash))) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    if (normalizedEmail === credential.email.toLowerCase()) {
+      throw new BadRequestException(
+        'The new email must differ from the current email.',
+      );
+    }
+
+    const existing = await this.prisma.adminCredential.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (existing) {
+      throw new ConflictException('That email address is already in use.');
+    }
+
+    await this.prisma.adminCredential.update({
+      where: { id: credential.id },
+      data: {
+        email: normalizedEmail,
+        tokenVersion: { increment: 1 },
+      },
+    });
+
+    return {
+      message:
+        'Login email changed successfully. Sign in again with your new email.',
+    };
+  }
+}

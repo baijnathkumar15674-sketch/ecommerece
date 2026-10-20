@@ -1,0 +1,81 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { Request } from 'express';
+import { PrismaService } from '../../prisma/prisma.service.js';
+
+type CustomerRequest = Request & {
+  user?: {
+    sub: string;
+    role: 'CUSTOMER';
+  };
+};
+
+@Injectable()
+export class CustomerJwtGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<CustomerRequest>();
+    const authorization = request.headers.authorization;
+
+    if (!authorization?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Customer access token is required.');
+    }
+
+    const token = authorization.slice('Bearer '.length).trim();
+
+    try {
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string;
+        role: string;
+        tokenVersion: number;
+      }>(token);
+
+      if (
+        !payload.sub ||
+        payload.role !== 'CUSTOMER' ||
+        !Number.isInteger(payload.tokenVersion)
+      ) {
+        throw new UnauthorizedException('Customer access is required.');
+      }
+
+      const customer = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: {
+          id: true,
+          role: true,
+          tokenVersion: true,
+        },
+      });
+
+      if (
+        !customer ||
+        customer.role !== 'CUSTOMER' ||
+        customer.tokenVersion !== payload.tokenVersion
+      ) {
+        throw new UnauthorizedException(
+          'Customer account not found or token revoked.',
+        );
+      }
+
+      request.user = {
+        sub: customer.id,
+        role: 'CUSTOMER',
+      };
+
+      return true;
+    } catch {
+      throw new UnauthorizedException(
+        'Invalid, expired, or unauthorized customer token.',
+      );
+    }
+  }
+}

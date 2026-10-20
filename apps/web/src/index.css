@@ -1,0 +1,1509 @@
+
+@import "tailwindcss";
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #171717;
+  background: #ffffff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+
+/* SHOPORA: buttons stay clear without hover */
+.shopora-primary-button {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+  box-shadow: none;
+}
+
+.shopora-primary-button:visited,
+.shopora-primary-button:link {
+  color: #ffffff !important;
+}
+
+.shopora-primary-button:hover:not(:disabled) {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.shopora-primary-button:disabled {
+  background-color: #d4d4d4 !important;
+  color: #404040 !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+.shopora-secondary-button {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+  border: 1px solid #d4d4d4 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.shopora-secondary-button:hover {
+  background-color: #fff7ed !important;
+  color: #171717 !important;
+  border-color: #ea580c !important;
+}
+
+.account-continue-shopping {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 14px 24px !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.account-continue-shopping:hover {
+  background-color: #262626 !important;
+  color: #ffffff !important;
+}
+
+.account-continue-shopping:focus-visible {
+  outline: 2px solid #737373 !important;
+  outline-offset: 3px !important;
+}
+
+
+/* Shopora animated homepage hero */
+
+.shopora-hero {
+  overflow: hidden;
+  background: #f5f1e9;
+  color: #24231f;
+  padding: 72px 24px 88px;
+}
+
+.shopora-hero-inner {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+}
+
+.shopora-hero-copy {
+  animation: shopora-enter-left 800ms ease both;
+}
+
+.shopora-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #a65b36;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.shopora-eyebrow-line {
+  width: 34px;
+  height: 1px;
+  background: #a65b36;
+}
+
+.shopora-hero-title {
+  margin-top: 30px;
+  font-size: clamp(42px, 5vw, 72px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -4px;
+}
+
+.shopora-hero-title span {
+  display: inline-block;
+  animation: shopora-title-reveal 900ms 150ms both;
+}
+
+.shopora-hero-description {
+  max-width: 500px;
+  margin-top: 26px;
+  color: #69675f;
+  font-size: 18px;
+  line-height: 1.9;
+}
+
+.shopora-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+.shopora-hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 999px;
+  padding: 17px 25px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.shopora-hero-button:hover {
+  background: #ea580c;
+  transform: translateY(-3px);
+}
+
+.shopora-text-link {
+  color: #77746d;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.shopora-text-link:hover {
+  color: #ea580c;
+}
+
+.shopora-hero-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.shopora-hero-benefits span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #68665e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shopora-hero-visual {
+  position: relative;
+  min-width: 0;
+  animation: shopora-enter-right 900ms ease both;
+}
+
+.shopora-hero-image-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 0.83;
+  border-radius: 34px;
+  background: #e5dccf;
+  isolation: isolate;
+}
+
+.shopora-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  object-position: center;
+}
+
+.shopora-image-caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  padding: 70px 32px 30px;
+  color: #fff;
+  background: linear-gradient(transparent, rgb(0 0 0 / 55%));
+}
+
+.shopora-image-caption p {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.shopora-image-caption h2 {
+  margin-top: 10px;
+  font-size: clamp(22px, 2.5vw, 32px);
+  font-weight: 700;
+}
+
+.shopora-orbit {
+  position: absolute;
+  z-index: 0;
+  top: -25px;
+  right: -22px;
+  width: 145px;
+  height: 145px;
+  border: 1px solid #cbb99d;
+  border-radius: 50%;
+  animation: shopora-orbit-spin 18s linear infinite;
+}
+
+.shopora-floating-card {
+  position: absolute;
+  z-index: 2;
+  bottom: -20px;
+  left: -24px;
+  display: grid;
+  gap: 5px;
+  padding: 20px 23px;
+  border: 1px solid rgb(0 0 0 / 5%);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 10%);
+  animation: shopora-card-float 4s ease-in-out infinite;
+}
+
+.shopora-floating-card span {
+  color: #858078;
+  font-size: 12px;
+}
+
+.shopora-floating-card strong {
+  font-size: 14px;
+}
+
+/* Entrance and floating animations */
+
+@keyframes shopora-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shopora-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shopora-title-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shopora-image-float {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.035) translateY(-5px);
+  }
+}
+
+@keyframes shopora-card-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes shopora-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile and tablet layout */
+
+@media (max-width: 800px) {
+  .shopora-hero {
+    padding: 52px 20px 70px;
+  }
+
+  .shopora-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .shopora-hero-title {
+    letter-spacing: -2px;
+  }
+
+  .shopora-hero-description {
+    font-size: 16px;
+  }
+
+  .shopora-hero-visual {
+    width: calc(100% - 12px);
+    margin: 0 auto;
+  }
+
+  .shopora-floating-card {
+    left: -10px;
+  }
+
+  .shopora-orbit {
+    right: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopora-hero-copy,
+  .shopora-hero-visual,
+  .shopora-hero-title span,
+  .shopora-hero-image,
+  .shopora-floating-card,
+  .shopora-orbit {
+    animation: none !important;
+  }
+
+  .shopora-hero-button,
+  .shopora-text-link {
+    transition: none;
+  }
+}
+
+
+/* Shopora theme switch */
+.shopora-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    color 200ms ease,
+    transform 200ms ease;
+}
+
+.shopora-theme-toggle:hover {
+  transform: rotate(-10deg);
+  background: #f5f1e9;
+}
+
+/* Global theme transition */
+html,
+body,
+#root {
+  transition:
+    background-color 250ms ease,
+    color 250ms ease;
+}
+
+/* Dark theme base */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root {
+  background-color: #111318;
+  color: #f5f5f5;
+}
+
+/* Storefront surfaces */
+html[data-theme="dark"] .bg-white {
+  background-color: #181b22;
+}
+
+html[data-theme="dark"] .bg-neutral-50,
+html[data-theme="dark"] .bg-neutral-100 {
+  background-color: #222630;
+}
+
+html[data-theme="dark"] .border-neutral-200,
+html[data-theme="dark"] .border-neutral-300 {
+  border-color: #353a46;
+}
+
+/* Text */
+html[data-theme="dark"] .text-neutral-900,
+html[data-theme="dark"] .text-neutral-950 {
+  color: #f5f5f5;
+}
+
+html[data-theme="dark"] .text-neutral-700,
+html[data-theme="dark"] .text-neutral-600 {
+  color: #c5cad4;
+}
+
+html[data-theme="dark"] .text-neutral-500 {
+  color: #a0a7b5;
+}
+
+/* Navbar */
+html[data-theme="dark"] header {
+  background-color: #181b22;
+  color: #f5f5f5;
+  border-color: #353a46;
+}
+
+html[data-theme="dark"] header a {
+  color: inherit;
+}
+
+html[data-theme="dark"] header a .text-orange-600 {
+  color: #fb923c;
+}
+
+html[data-theme="dark"] .shopora-theme-toggle {
+  background: #252a35;
+  color: #facc15;
+  border-color: #444b59;
+}
+
+html[data-theme="dark"] .shopora-theme-toggle:hover {
+  background: #343b49;
+}
+
+/* Animated homepage hero */
+html[data-theme="dark"] .shopora-hero {
+  background: #171a21;
+  color: #f5f5f5;
+}
+
+html[data-theme="dark"] .shopora-hero-title {
+  color: #f5f5f5;
+}
+
+html[data-theme="dark"] .shopora-hero-description,
+html[data-theme="dark"] .shopora-text-link,
+html[data-theme="dark"] .shopora-hero-benefits span {
+  color: #c5cad4;
+}
+
+html[data-theme="dark"] .shopora-hero-image-frame {
+  background: #292d38;
+}
+
+html[data-theme="dark"] .shopora-floating-card {
+  background: #252a35;
+  color: #f5f5f5;
+  border-color: #414754;
+}
+
+html[data-theme="dark"] .shopora-floating-card span {
+  color: #c5cad4;
+}
+
+html[data-theme="dark"] .shopora-orbit {
+  border-color: #7c6b99;
+}
+
+/* Footer */
+html[data-theme="dark"] footer {
+  background-color: #090b10;
+  border-color: #353a46;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .shopora-theme-toggle,
+  html,
+  body,
+  #root {
+    transition: none;
+  }
+
+  .shopora-theme-toggle:hover {
+    transform: none;
+  }
+}
+
+/* Shopora: All Products banner */
+.products-banner {
+  background-color: #fff7ed;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.products-banner-label {
+  color: #c2410c;
+}
+
+.products-banner-title {
+  color: #171717;
+}
+
+.products-banner-description {
+  color: #525252;
+}
+
+/* Dark theme */
+html[data-theme="dark"] .products-banner {
+  background-color: #202127;
+}
+
+html[data-theme="dark"] .products-banner-label {
+  color: #fdba74;
+}
+
+html[data-theme="dark"] .products-banner-title {
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .products-banner-description {
+  color: #d4d4d8;
+}
+
+
+/* Shopora - Create Account button */
+.create-account-btn {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 12px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff7900, #ff5500);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(255, 103, 0, 0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.create-account-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1b1917, #000000);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 103, 0, 0.32);
+}
+
+.create-account-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(255, 103, 0, 0.2);
+}
+
+.create-account-btn:focus-visible {
+  outline: 3px solid rgba(255, 121, 0, 0.4);
+  outline-offset: 3px;
+}
+
+.create-account-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+/* Shopora - Create Account button */
+.create-account-btn {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 12px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #413d39, #1b1918);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(255, 103, 0, 0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.create-account-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff8c1a, #f04b00);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 103, 0, 0.32);
+}
+
+.create-account-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(255, 103, 0, 0.2);
+}
+
+.create-account-btn:focus-visible {
+  outline: 3px solid rgba(255, 121, 0, 0.4);
+  outline-offset: 3px;
+}
+
+.create-account-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+.continue-shopping-btn {
+  color: #ffffff;
+  background: #000000;
+  border: 1px solid #000000;
+  font-weight: 600;
+}
+
+.continue-shopping-btn:hover {
+  color: #ffffff;
+  background: #292929;
+  border-color: #292929;
+}
+
+
+/* Shopora profile card */
+.profile-card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 28px;
+  border: 1px solid var(--border-color, #e5e5e5);
+  border-radius: 18px;
+  background: var(--card-background, #fff);
+  color: var(--text-color, #171717);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 3%);
+  margin: 28px 0 32px;
+}
+
+.profile-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.profile-card-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.profile-card-heading p {
+  margin: 7px 0 0;
+  color: #777;
+  font-size: 14px;
+}
+
+.profile-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex-shrink: 0;
+  padding: 11px 17px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.profile-edit-button span {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.profile-edit-button:hover {
+  background: #f6f6f6;
+  border-color: #bdbdbd;
+  transform: translateY(-1px);
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.profile-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.profile-detail-label {
+  color: #858585;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+}
+
+.profile-detail strong {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.profile-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-form-grid input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid #dedede;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-form-grid input:focus {
+  border-color: #171717;
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 7%);
+}
+
+.profile-form-grid input::placeholder {
+  color: #a0a0a0;
+}
+
+.profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #ededed;
+}
+
+.profile-save-button,
+.profile-cancel-button {
+  min-height: 43px;
+  padding: 11px 19px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.profile-save-button {
+  border: 1px solid #111;
+  background: #111;
+  color: white;
+}
+
+.profile-save-button:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+.profile-cancel-button {
+  border: 1px solid #dedede;
+  background: transparent;
+  color: inherit;
+}
+
+.profile-cancel-button:hover {
+  background: #f6f6f6;
+}
+
+.profile-save-button:disabled,
+.profile-cancel-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.profile-error {
+  margin: 0;
+  color: #c62828;
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .profile-card {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .profile-card-heading {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .profile-card-heading h2 {
+    font-size: 19px;
+  }
+
+  .profile-edit-button {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .profile-details-grid,
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .profile-form-actions {
+    flex-wrap: wrap;
+  }
+}
+
+
+.delivery-estimate {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 22px 0;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.delivery-estimate-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #e8f5e9;
+  color: #18753b;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.delivery-estimate-label {
+  margin: 0 0 6px;
+  color: #777;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.delivery-estimate strong {
+  display: block;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.delivery-estimate-note {
+  margin: 5px 0 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.delivery-complete .delivery-estimate-icon {
+  background: #dcfce7;
+}
+
+.delivery-cancelled .delivery-estimate-icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* SHOPORA — Full-width animated hero slideshow */
+.shopora-hero--slideshow {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: clamp(600px, 76vh, 850px);
+  padding: 0;
+  overflow: hidden;
+  background: #292821;
+  color: #fff;
+}
+
+.shopora-hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.shopora-hero-background-image {
+  position: absolute;
+  inset: -1%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  will-change: opacity, transform;
+}
+
+.shopora-hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(15, 16, 20, 0.88) 0%,
+      rgba(15, 16, 20, 0.70) 38%,
+      rgba(15, 16, 20, 0.30) 72%,
+      rgba(15, 16, 20, 0.15) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(15, 16, 20, 0.48) 0%,
+      transparent 40%
+    );
+}
+
+.shopora-slideshow-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(64px, 9vh, 110px) clamp(24px, 5vw, 80px)
+    clamp(100px, 13vh, 145px);
+}
+
+.shopora-slideshow-copy {
+  width: 100%;
+  max-width: 760px;
+}
+
+.shopora-slideshow-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 28px;
+  color: #f2c19e;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+}
+
+.shopora-slideshow-eyebrow span {
+  display: inline-block;
+  width: 34px;
+  height: 1px;
+  background: #f2c19e;
+}
+
+.shopora-slideshow-title {
+  margin: 0;
+  max-width: 800px;
+  color: #fff;
+  font-size: clamp(42px, 5.6vw, 78px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.065em;
+  text-wrap: balance;
+}
+
+.shopora-slideshow-title span {
+  color: #f2c19e;
+}
+
+.shopora-slideshow-description {
+  max-width: 620px;
+  margin: 25px 0 0;
+  color: rgba(255, 255, 255, 0.83);
+  font-size: clamp(15px, 1.35vw, 19px);
+  line-height: 1.85;
+}
+
+.shopora-slideshow-product {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.shopora-slideshow-product span {
+  width: 100%;
+  color: #f2c19e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.shopora-slideshow-product strong {
+  color: #f2c19e;
+}
+
+.shopora-slideshow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.shopora-slideshow-primary,
+.shopora-slideshow-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 54px;
+  padding: 0 25px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    transform 220ms ease,
+    border-color 220ms ease;
+}
+
+.shopora-slideshow-primary {
+  background: #fff;
+  color: #171717;
+}
+
+.shopora-slideshow-primary:hover {
+  transform: translateY(-2px);
+  background: #f2c19e;
+}
+
+.shopora-slideshow-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: rgba(20, 20, 24, 0.18);
+  color: #fff;
+  backdrop-filter: blur(12px);
+}
+
+.shopora-slideshow-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.shopora-slideshow-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 38px;
+}
+
+.shopora-slideshow-benefits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shopora-slide-indicators {
+  position: absolute;
+  z-index: 2;
+  bottom: 34px;
+  left: clamp(24px, 5vw, 80px);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.shopora-slide-dot {
+  width: 35px;
+  height: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.42);
+  cursor: pointer;
+  transition:
+    width 250ms ease,
+    background-color 250ms ease;
+}
+
+.shopora-slide-dot.is-active {
+  width: 56px;
+  background: #f2c19e;
+}
+
+.shopora-slide-arrows {
+  position: absolute;
+  z-index: 2;
+  right: clamp(24px, 5vw, 80px);
+  bottom: 22px;
+  display: flex;
+  gap: 12px;
+}
+
+.shopora-slide-arrows button {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 200ms ease;
+}
+
+.shopora-slide-arrows button:hover {
+  transform: translateY(-2px);
+  background: #fff;
+  color: #171717;
+}
+
+@media (max-width: 640px) {
+  .shopora-hero--slideshow {
+    min-height: 690px;
+    min-height: max(690px, 82svh);
+  }
+
+  .shopora-hero-background-image {
+    background-position: 58% center;
+  }
+
+  .shopora-hero-shade {
+    background:
+      linear-gradient(
+        90deg,
+        rgba(15, 16, 20, 0.78),
+        rgba(15, 16, 20, 0.38)
+      ),
+      linear-gradient(
+        0deg,
+        rgba(15, 16, 20, 0.82),
+        transparent 90%
+      );
+  }
+
+  .shopora-slideshow-content {
+    padding: 76px 24px 130px;
+  }
+
+  .shopora-slideshow-eyebrow {
+    margin-bottom: 23px;
+    font-size: 10px;
+  }
+
+  .shopora-slideshow-title {
+    font-size: clamp(40px, 11vw, 58px);
+    letter-spacing: -0.055em;
+  }
+
+  .shopora-slideshow-description {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .shopora-slideshow-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shopora-slideshow-benefits {
+    gap: 12px 18px;
+  }
+
+  .shopora-slideshow-benefits span {
+    font-size: 11px;
+  }
+
+  .shopora-slide-indicators {
+    bottom: 36px;
+    gap: 6px;
+  }
+
+  .shopora-slide-dot {
+    width: 22px;
+  }
+
+  .shopora-slide-dot.is-active {
+    width: 40px;
+  }
+
+  .shopora-slide-arrows {
+    right: 20px;
+    bottom: 19px;
+    gap: 8px;
+  }
+
+  .shopora-slide-arrows button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopora-slide-dot,
+  .shopora-slide-arrows button,
+  .shopora-slideshow-primary,
+  .shopora-slideshow-secondary {
+    transition: none;
+  }
+}
+
+/* Fix Shopora slideshow: full viewport width */
+.shopora-hero.shopora-hero--slideshow {
+  display: flex !important;
+  position: relative;
+  isolation: isolate;
+
+  width: 100vw !important;
+  max-width: none !important;
+
+  /* Escape any centered, max-width homepage container */
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+
+  min-height: 760px;
+  min-height: max(760px, 88svh);
+
+  padding: 0 !important;
+  overflow: hidden;
+  box-sizing: border-box;
+  grid-template-columns: none !important;
+}
+
+/* Background must cover the entire hero */
+.shopora-hero--slideshow > .shopora-hero-background {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  z-index: -2;
+}
+
+/* Keep the image filling the entire background */
+.shopora-hero--slideshow .shopora-hero-background-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Full-width contrast overlay */
+.shopora-hero--slideshow > .shopora-hero-shade {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: -1;
+}
+
+/* Keep content readable and positioned on the left */
+.shopora-hero--slideshow > .shopora-slideshow-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Mobile layout */
+@media (max-width: 640px) {
+  .shopora-hero.shopora-hero--slideshow {
+    min-height: 760px;
+    min-height: max(760px, 88svh);
+  }
+
+  .shopora-hero--slideshow > .shopora-slideshow-content {
+    padding: 76px 24px 130px;
+  }
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+}
+
+.shopora-home {
+  width: 100%;
+  min-width: 0;
+}
+
+.shopora-hero.shopora-hero--slideshow {
+  flex: 0 0 100vw;
+}
+
+
+/* Shopora hero alignment fix */
+.shopora-hero.shopora-hero--slideshow {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+
+  min-height: 760px;
+  min-height: max(760px, 88svh);
+
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Background fills the complete hero */
+.shopora-hero--slideshow .shopora-hero-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.shopora-hero--slideshow .shopora-hero-background-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.shopora-hero--slideshow .shopora-hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+/* Keep the text inside the visible viewport */
+.shopora-hero--slideshow .shopora-slideshow-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 100px clamp(24px, 5vw, 80px) 140px;
+  box-sizing: border-box;
+}
+
+.shopora-hero--slideshow .shopora-slideshow-copy {
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .shopora-hero.shopora-hero--slideshow {
+    min-height: max(760px, 88svh);
+  }
+
+  .shopora-hero--slideshow .shopora-slideshow-content {
+    padding: 76px 24px 130px;
+  }
+}

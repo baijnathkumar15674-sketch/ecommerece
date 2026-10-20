@@ -1,0 +1,97 @@
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import type { Request } from 'express';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { AuthService } from './auth.service.js';
+import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard.js';
+
+class AdminLoginDto {
+  @IsEmail()
+  @MaxLength(254)
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  @MaxLength(128)
+  password!: string;
+}
+
+class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(128)
+  currentPassword!: string;
+
+  @IsString()
+  @MinLength(12)
+  @MaxLength(128)
+  newPassword!: string;
+}
+
+class ChangeEmailDto {
+  @IsEmail()
+  @MaxLength(254)
+  newEmail!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(128)
+  currentPassword!: string;
+}
+
+type AuthenticatedRequest = Request & {
+  user: { sub: string; role: string; tokenVersion: number };
+};
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  login(@Body() dto: AdminLoginDto) {
+    return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  changePassword(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(
+      request.user.sub,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+  }
+  @Post('change-email')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  changeEmail(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: ChangeEmailDto,
+  ) {
+    return this.authService.changeEmail(
+      request.user.sub,
+      dto.currentPassword,
+      dto.newEmail,
+    );
+  }
+
+}

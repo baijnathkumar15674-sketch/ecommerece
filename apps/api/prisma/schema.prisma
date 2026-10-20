@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  auth0Sub     String?  @unique
+  googleSub    String?  @unique
+  name         String
+  email        String   @unique
+  password     String?
+  phone        String?
+  role         UserRole @default(CUSTOMER)
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category   Category       @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  images     ProductImage[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Order {
+  customerName      String
+  email             String
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique @default(cuid())
+  userId            String?
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(CREATED)
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?       @unique
+  paidAt            DateTime?
+  subtotal          Decimal       @db.Decimal(10, 2)
+  shippingAddress   String
+  phone             String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  user          User?                @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id             String      @id @default(cuid())
+  orderId        String
+  previousStatus OrderStatus
+  newStatus      OrderStatus
+  changedBy      String
+  changedAt      DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, changedAt])
+  @@index([changedBy])
+  @@map("order_status_history")
+}
+
+model StoreSettings {
+  id           String   @id @default("default")
+  storeName    String   @default("Shopora")
+  contactEmail String   @default("admin@shopora.local")
+  phone        String   @default("")
+  currency     String   @default("INR")
+  timezone     String   @default("Asia/Kolkata")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model AdminCredential {
+  id           String   @id @default("default")
+  email        String   @unique
+  passwordHash String
+  tokenVersion Int      @default(0)
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_credentials")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  alt       String?
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}

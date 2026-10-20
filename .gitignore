@@ -1,0 +1,48 @@
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+.next/
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Test and temporary files
+.nyc_output/
+.tmp/
+temp/
+
+# Local databases and database backups
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+
+# Generated Prisma artifacts
+apps/api/src/generated/prisma/
