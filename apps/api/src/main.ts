@@ -18,6 +18,7 @@ app.useGlobalPipes(
 app.enableCors({
   origin: [
     'https://ecommerce-jet.vercel.app',
+    'https://ecommerce-jet.vercel.app',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
