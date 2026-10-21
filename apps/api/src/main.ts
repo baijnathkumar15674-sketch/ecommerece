@@ -23,6 +23,7 @@ app.enableCors({
     "http://127.0.0.1:5174",
     "https://ecommerce-jet.vercel.app",
     "https://ecommerce-xc88.vercel.app",
+    "https://ecommerce-xc88-kt5j2z1u5.vercel.app",
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
