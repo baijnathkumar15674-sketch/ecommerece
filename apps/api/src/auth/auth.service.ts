@@ -23,11 +23,13 @@ export class AuthService {
 
   private configuredEmail(): string {
     const email = this.configService.get<string>('ADMIN_EMAIL');
+
     if (!email) {
       throw new ServiceUnavailableException(
         'Admin authentication is not configured.',
       );
     }
+
     return email.trim().toLowerCase();
   }
 
@@ -79,7 +81,11 @@ export class AuthService {
       tokenVersion,
     });
 
-    return { accessToken, tokenType: 'Bearer', expiresIn: '15m' };
+    return {
+      accessToken,
+      tokenType: 'Bearer',
+      expiresIn: '15m',
+    };
   }
 
   async login(email: string, password: string) {
@@ -93,6 +99,54 @@ export class AuthService {
     }
 
     return this.issueToken(credential.email, credential.tokenVersion);
+  }
+
+  // Reset admin credentials using ADMIN_RESET_SECRET.
+  async resetAdminCredentials(
+    resetSecret: string,
+    newPassword: string,
+  ) {
+    const expectedSecret =
+      this.configService.get<string>('ADMIN_RESET_SECRET');
+
+    if (!expectedSecret) {
+      throw new ServiceUnavailableException(
+        'Admin reset is not configured.',
+      );
+    }
+
+    if (resetSecret !== expectedSecret) {
+      throw new UnauthorizedException('Invalid reset secret.');
+    }
+
+    if (newPassword.length < 12 || newPassword.length > 128) {
+      throw new BadRequestException(
+        'Password must be between 12 and 128 characters.',
+      );
+    }
+
+    const email = this.configuredEmail();
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.adminCredential.upsert({
+      where: { id: 'default' },
+      update: {
+        email,
+        passwordHash,
+        tokenVersion: { increment: 1 },
+      },
+      create: {
+        id: 'default',
+        email,
+        passwordHash,
+        tokenVersion: 1,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Admin credentials reset successfully.',
+    };
   }
 
   async changePassword(
@@ -174,7 +228,12 @@ export class AuthService {
     };
   }
 
-  async registerCustomer(name: string, email: string, password: string, phone?: string) {
+  async registerCustomer(
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+  ) {
     const normalizedEmail = email.trim().toLowerCase();
 
     const existingUser = await this.prisma.user.findUnique({
@@ -183,7 +242,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('An account with this email already exists.');
+      throw new ConflictException(
+        'An account with this email already exists.',
+      );
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -206,11 +267,11 @@ export class AuthService {
         },
       });
 
-        const accessToken = await this.jwtService.signAsync({
-          sub: user.id,
-          role: 'CUSTOMER',
-          tokenVersion: user.tokenVersion,
-        });
+      const accessToken = await this.jwtService.signAsync({
+        sub: user.id,
+        role: 'CUSTOMER',
+        tokenVersion: user.tokenVersion,
+      });
 
       return {
         user,
@@ -219,14 +280,15 @@ export class AuthService {
         expiresIn: '15m',
       };
     } catch (error) {
-      // Handle a concurrent registration for the same email.
       if (
         typeof error === 'object' &&
         error !== null &&
         'code' in error &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('An account with this email already exists.');
+        throw new ConflictException(
+          'An account with this email already exists.',
+        );
       }
 
       throw error;
@@ -240,21 +302,20 @@ export class AuthService {
       where: { email: normalizedEmail },
     });
 
+    if (
+      !user ||
+      user.role !== UserRole.CUSTOMER ||
+      !user.password ||
+      !(await bcrypt.compare(password, user.password))
+    ) {
+      throw new UnauthorizedException('Invalid email or password.');
+    }
 
-if (
-  !user ||
-  user.role !== UserRole.CUSTOMER ||
-  !user.password ||
-  !(await bcrypt.compare(password, user.password))
-) {
-  throw new UnauthorizedException('Invalid email or password.');
-}
-
-      const accessToken = await this.jwtService.signAsync({
-        sub: user.id,
-        role: 'CUSTOMER',
-        tokenVersion: user.tokenVersion,
-      });
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      role: 'CUSTOMER',
+      tokenVersion: user.tokenVersion,
+    });
 
     return {
       user: {
@@ -269,54 +330,16 @@ if (
     };
   }
 
- 
- 
-async loginCustomerWithGoogle(googleUser: {
-  googleId: string;
-  email: string;
-  name: string;
-  picture: string | null;
-}) {
-  const email = googleUser.email.trim().toLowerCase();
+  async loginCustomerWithGoogle(googleUser: {
+    googleId: string;
+    email: string;
+    name: string;
+    picture: string | null;
+  }) {
+    const email = googleUser.email.trim().toLowerCase();
 
-  // Find an account by Google's verified, stable user ID.
-  let user = await this.prisma.user.findUnique({
-    where: { googleSub: googleUser.googleId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      tokenVersion: true,
-    },
-  });
-
-  // If this Google identity is new, do not silently merge accounts by email.
-  if (!user) {
-    const existingEmailUser = await this.prisma.user.findUnique({
-      where: { email },
-      select: { id: true, role: true },
-    });
-
-    if (existingEmailUser) {
-      throw new ConflictException(
-        'An account with this email already exists. Sign in using that account or complete a secure account-linking flow.',
-      );
-    }
-
-    const randomPassword = randomBytes(32).toString('hex');
-    const passwordHash = await bcrypt.hash(randomPassword, 12);
-
-    user = await this.prisma.user.create({
-      data: {
-        googleSub: googleUser.googleId,
-        name: googleUser.name.trim() || email.split('@')[0],
-        email,
-        password: passwordHash,
-        phone: null,
-        role: UserRole.CUSTOMER,
-      },
+    let user = await this.prisma.user.findUnique({
+      where: { googleSub: googleUser.googleId },
       select: {
         id: true,
         name: true,
@@ -326,113 +349,141 @@ async loginCustomerWithGoogle(googleUser: {
         tokenVersion: true,
       },
     });
-  }
 
-  if (user.role !== UserRole.CUSTOMER) {
-    throw new UnauthorizedException(
-      'This account cannot sign in through customer Google login.',
-    );
-  }
+    if (!user) {
+      const existingEmailUser = await this.prisma.user.findUnique({
+        where: { email },
+        select: { id: true, role: true },
+      });
 
-  const accessToken = await this.jwtService.signAsync({
-    sub: user.id,
-    role: 'CUSTOMER',
-    tokenVersion: user.tokenVersion,
-  });
+      if (existingEmailUser) {
+        throw new ConflictException(
+          'An account with this email already exists. Sign in using that account or complete a secure account-linking flow.',
+        );
+      }
 
-  return {
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-    },
-    accessToken,
-    tokenType: 'Bearer',
-    expiresIn: '15m',
-  };
-}
+      const randomPassword = randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, 12);
 
-async linkGoogleAccount(
-  customerId: string,
-  googleUser: {
-    googleId: string;
-    email: string;
-    name: string;
-    picture: string | null;
-  },
-) {
-  const email = googleUser.email.trim().toLowerCase();
+      user = await this.prisma.user.create({
+        data: {
+          googleSub: googleUser.googleId,
+          name: googleUser.name.trim() || email.split('@')[0],
+          email,
+          password: passwordHash,
+          phone: null,
+          role: UserRole.CUSTOMER,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          tokenVersion: true,
+        },
+      });
+    }
 
-  // Only link Google to the currently authenticated customer.
-  const customer = await this.prisma.user.findUnique({
-    where: { id: customerId },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      googleSub: true,
-    },
-  });
-
-  if (!customer || customer.role !== UserRole.CUSTOMER) {
-    throw new UnauthorizedException('Customer account not found.');
-  }
-
-  // Require the verified Google email to match the Shopora account.
-  if (customer.email.trim().toLowerCase() !== email) {
-    throw new ConflictException(
-      'Your Google email must match your existing Shopora account email.',
-    );
-  }
-
-  // Do not overwrite a different Google identity already linked here.
-  if (customer.googleSub && customer.googleSub !== googleUser.googleId) {
-    throw new ConflictException(
-      'A different Google account is already linked to this Shopora account.',
-    );
-  }
-
-  // Prevent linking a Google identity already owned by another account.
-  const linkedGoogleUser = await this.prisma.user.findUnique({
-    where: { googleSub: googleUser.googleId },
-    select: { id: true },
-  });
-
-  if (linkedGoogleUser && linkedGoogleUser.id !== customer.id) {
-    throw new ConflictException(
-      'This Google account is already linked to another Shopora account.',
-    );
-  }
-
-  if (customer.googleSub === googleUser.googleId) {
-    return { message: 'This Google account is already linked.' };
-  }
-
-  try {
-    await this.prisma.user.update({
-      where: { id: customer.id },
-      data: { googleSub: googleUser.googleId },
-    });
-  } catch (error) {
-    // Handle concurrent linking attempts or a unique-constraint conflict.
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'P2002'
-    ) {
-      throw new ConflictException(
-        'This Google account is already linked to another account.',
+    if (user.role !== UserRole.CUSTOMER) {
+      throw new UnauthorizedException(
+        'This account cannot sign in through customer Google login.',
       );
     }
 
-    throw error;
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      role: 'CUSTOMER',
+      tokenVersion: user.tokenVersion,
+    });
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+      accessToken,
+      tokenType: 'Bearer',
+      expiresIn: '15m',
+    };
   }
 
-  return { message: 'Google account linked successfully.' };
-}
+  async linkGoogleAccount(
+    customerId: string,
+    googleUser: {
+      googleId: string;
+      email: string;
+      name: string;
+      picture: string | null;
+    },
+  ) {
+    const email = googleUser.email.trim().toLowerCase();
 
+    const customer = await this.prisma.user.findUnique({
+      where: { id: customerId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        googleSub: true,
+      },
+    });
+
+    if (!customer || customer.role !== UserRole.CUSTOMER) {
+      throw new UnauthorizedException('Customer account not found.');
+    }
+
+    if (customer.email.trim().toLowerCase() !== email) {
+      throw new ConflictException(
+        'Your Google email must match your existing Shopora account email.',
+      );
+    }
+
+    if (customer.googleSub && customer.googleSub !== googleUser.googleId) {
+      throw new ConflictException(
+        'A different Google account is already linked to this Shopora account.',
+      );
+    }
+
+    const linkedGoogleUser = await this.prisma.user.findUnique({
+      where: { googleSub: googleUser.googleId },
+      select: { id: true },
+    });
+
+    if (linkedGoogleUser && linkedGoogleUser.id !== customer.id) {
+      throw new ConflictException(
+        'This Google account is already linked to another Shopora account.',
+      );
+    }
+
+    if (customer.googleSub === googleUser.googleId) {
+      return { message: 'This Google account is already linked.' };
+    }
+
+    try {
+      await this.prisma.user.update({
+        where: { id: customer.id },
+        data: { googleSub: googleUser.googleId },
+      });
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'This Google account is already linked to another account.',
+        );
+      }
+
+      throw error;
+    }
+
+    return { message: 'Google account linked successfully.' };
+  }
 
   async logoutCustomer(customerId: string) {
     await this.prisma.user.updateMany({
@@ -477,57 +528,58 @@ async linkGoogleAccount(
       createdAt: user.createdAt,
     };
   }
+
   async updateCustomerProfile(
-  userId: string,
-  name: string,
-  email: string,
-  phone?: string | null,
-) {
-  const normalizedEmail = email.trim().toLowerCase();
+    userId: string,
+    name: string,
+    email: string,
+    phone?: string | null,
+  ) {
+    const normalizedEmail = email.trim().toLowerCase();
 
-  const existingUser = await this.prisma.user.findUnique({
-    where: { email: normalizedEmail },
-    select: { id: true },
-  });
-
-  if (existingUser && existingUser.id !== userId) {
-    throw new ConflictException(
-      'That email address is already in use.',
-    );
-  }
-
-  try {
-    return await this.prisma.user.update({
-      where: {
-        id: userId,
-        role: UserRole.CUSTOMER,
-      },
-      data: {
-        name: name.trim(),
-        email: normalizedEmail,
-        phone: phone?.trim() || null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        createdAt: true,
-      },
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
     });
-  } catch (error) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'P2002'
-    ) {
+
+    if (existingUser && existingUser.id !== userId) {
       throw new ConflictException(
-        'That email address or phone number is already in use.',
+        'That email address is already in use.',
       );
     }
 
-    throw error;
+    try {
+      return await this.prisma.user.update({
+        where: {
+          id: userId,
+          role: UserRole.CUSTOMER,
+        },
+        data: {
+          name: name.trim(),
+          email: normalizedEmail,
+          phone: phone?.trim() || null,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          createdAt: true,
+        },
+      });
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'That email address or phone number is already in use.',
+        );
+      }
+
+      throw error;
+    }
   }
-}
 }
