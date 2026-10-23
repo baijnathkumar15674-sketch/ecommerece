@@ -18,8 +18,11 @@ async function bootstrap() {
   );
 
   // Allow frontend domains to access the API
+   // Allow frontend domains and Hoppscotch
   app.enableCors({
     origin: [
+      "https://hoppscotch.io",
+      "https://hoppscotch.com",
       // Local development
       "http://localhost:5173",
       "http://127.0.0.1:5173",
