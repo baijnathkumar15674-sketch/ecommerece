@@ -1,0 +1,32 @@
+
+name: Seed SHOPORA Products
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @shop/api exec prisma generate
+
+      - name: Seed database
+        run: pnpm --filter @shop/api prisma:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
