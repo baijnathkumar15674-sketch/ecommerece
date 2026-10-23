@@ -4,15 +4,22 @@ name: Seed SHOPORA Products
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   seed:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,6 +32,8 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm --filter @shop/api exec prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Seed database
         run: pnpm --filter @shop/api prisma:seed
