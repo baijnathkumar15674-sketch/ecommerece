@@ -20,6 +20,7 @@ async function bootstrap() {
   // Allow frontend domains to access the API
   app.enableCors({
     origin: [
+      // Local development
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://localhost:5174",
@@ -30,8 +31,11 @@ async function bootstrap() {
       "https://ecommerce-xc88.vercel.app",
       "https://ecommerce-xc88-kt5j2z1u5.vercel.app",
 
-      // Current SHOPORA frontend
+      // SHOPORA customer frontend
       "https://ecommerece-mocha.vercel.app",
+
+      // SHOPORA admin panel
+      "https://ecommerece-mwuw.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
