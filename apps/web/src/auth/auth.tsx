@@ -1,4 +1,4 @@
-
+```tsx
 declare global {
   interface Window {
     google?: {
@@ -20,8 +20,10 @@ import {
   type ReactNode,
 } from "react";
 
+// SHOPORA production backend
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:3000"
+  import.meta.env.VITE_API_URL ||
+  "https://ecommerece-sr29.onrender.com"
 ).replace(/\/+$/, "");
 
 type Customer = {
@@ -46,24 +48,32 @@ type AuthContextValue = {
   ) => Promise<void>;
   logout: () => void;
   updateProfile: (data: {
-  name: string;
-  email: string;
-  phone: string;
-}) => Promise<void>;
+    name: string;
+    email: string;
+    phone: string;
+  }) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const TOKEN_KEY = "shopora_customer_token";
 
-async function request<T>(path: string, body?: unknown, token?: string): Promise<T> {
+async function request<T>(
+  path: string,
+  body?: unknown,
+  token?: string,
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       Accept: "application/json",
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(body === undefined
+        ? {}
+        : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined
+      ? {}
+      : { body: JSON.stringify(body) }),
   });
 
   const data = await response.json().catch(() => ({}));
@@ -84,37 +94,33 @@ type AuthResponse = {
   accessToken: string;
 };
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
 
-const logout = useCallback(async () => {
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const logout = useCallback(async () => {
+    const token = sessionStorage.getItem(TOKEN_KEY);
 
-  // Clear the local session immediately.
-  sessionStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(TOKEN_KEY);
-  setCustomer(null);
+    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    setCustomer(null);
 
-  // Stop Google Identity Services from automatically
-  // selecting the previously used Google account.
-  window.google?.accounts?.id?.disableAutoSelect?.();
+    window.google?.accounts?.id?.disableAutoSelect?.();
 
-  try {
-    if (token) {
-      await request(
-        '/auth/customer/logout',
-        {},
-        token,
-      );
+    try {
+      if (token) {
+        await request("/auth/customer/logout", {}, token);
+      }
+    } catch (error) {
+      console.error("Server logout failed:", error);
+    } finally {
+      window.location.replace("/login");
     }
-  } catch (error) {
-    console.error('Server logout failed:', error);
-  } finally {
-    window.location.replace('/login');
-  }
-}, []);
-
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -133,6 +139,7 @@ const logout = useCallback(async () => {
           undefined,
           token,
         );
+
         if (active) setCustomer(profile);
       } catch {
         sessionStorage.removeItem(TOKEN_KEY);
@@ -149,89 +156,111 @@ const logout = useCallback(async () => {
     };
   }, []);
 
-const login = useCallback(async (email: string, password: string) => {
-  const result = await request<AuthResponse>("/auth/customer/login", {
-    email,
-    password,
-  });
-  sessionStorage.setItem(TOKEN_KEY, result.accessToken);
-  setCustomer(result.user);
-}, []);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await request<AuthResponse>(
+        "/auth/customer/login",
+        { email, password },
+      );
 
-
-const googleLogin = useCallback(async (credential: string) => {
-  const result = await request<AuthResponse>("/auth/google", {
-    credential,
-  });
-
-  sessionStorage.setItem(TOKEN_KEY, result.accessToken);
-  setCustomer(result.user);
-}, []);
-
-  const linkGoogleAccount = useCallback(async (credential: string) => {
-  const token = sessionStorage.getItem(TOKEN_KEY);
-
-  if (!token) {
-    throw new Error("Please sign in to your Shopora account first.");
-  }
-
-  await request<{ message: string }>(
-    "/auth/customer/link-google",
-    { credential },
-    token,
-  );
-}, []);
-
-  const register = useCallback(
-    async (name: string, email: string, password: string, phone?: string) => {
-      const result = await request<AuthResponse>("/auth/customer/register", {
-        name,
-        email,
-        password,
-        ...(phone?.trim() ? { phone: phone.trim() } : {}),
-      });
       sessionStorage.setItem(TOKEN_KEY, result.accessToken);
       setCustomer(result.user);
     },
     [],
   );
-  const updateProfile = useCallback(
-  async (data: {
-    name: string;
-    email: string;
-    phone: string;
-  }) => {
-    const token = sessionStorage.getItem(TOKEN_KEY);
 
-    if (!token) {
-      throw new Error(
-        "Please sign in again to update your profile.",
+  const googleLogin = useCallback(
+    async (credential: string) => {
+      const result = await request<AuthResponse>(
+        "/auth/google",
+        { credential },
       );
-    }
 
-    const updatedCustomer = await request<Customer>(
-      "/auth/customer/me",
-      data,
-      token,
-    );
+      sessionStorage.setItem(TOKEN_KEY, result.accessToken);
+      setCustomer(result.user);
+    },
+    [],
+  );
 
-    setCustomer(updatedCustomer);
-  },
-  [],
-);
+  const linkGoogleAccount = useCallback(
+    async (credential: string) => {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+
+      if (!token) {
+        throw new Error(
+          "Please sign in to your Shopora account first.",
+        );
+      }
+
+      await request<{ message: string }>(
+        "/auth/customer/link-google",
+        { credential },
+        token,
+      );
+    },
+    [],
+  );
+
+  const register = useCallback(
+    async (
+      name: string,
+      email: string,
+      password: string,
+      phone?: string,
+    ) => {
+      const result = await request<AuthResponse>(
+        "/auth/customer/register",
+        {
+          name,
+          email,
+          password,
+          ...(phone?.trim() ? { phone: phone.trim() } : {}),
+        },
+      );
+
+      sessionStorage.setItem(TOKEN_KEY, result.accessToken);
+      setCustomer(result.user);
+    },
+    [],
+  );
+
+  const updateProfile = useCallback(
+    async (data: {
+      name: string;
+      email: string;
+      phone: string;
+    }) => {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+
+      if (!token) {
+        throw new Error(
+          "Please sign in again to update your profile.",
+        );
+      }
+
+      const updatedCustomer = await request<Customer>(
+        "/auth/customer/me",
+        data,
+        token,
+      );
+
+      setCustomer(updatedCustomer);
+    },
+    [],
+  );
 
   return (
     <AuthContext.Provider
-    value={{
-  customer,
-  loading,
-  login,
-  googleLogin,
-  linkGoogleAccount,
-  register,
-  logout,
-  updateProfile,
-}}
+      value={{
+        customer,
+        loading,
+        login,
+        googleLogin,
+        linkGoogleAccount,
+        register,
+        logout,
+        updateProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -240,8 +269,11 @@ const googleLogin = useCallback(async (credential: string) => {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used inside AuthProvider.");
   }
+
   return context;
 }
+```
