@@ -710,9 +710,15 @@ if (imageUrls.some((url) => !/^https?:\/\/\S+$/i.test(url))) {
       throw new Error(message);
     }
 
-    setProductForm(EMPTY_PRODUCT_FORM);
-    setProductFormMessage('Product created successfully.');
-    await loadProducts(token);
+   setProductForm(EMPTY_PRODUCT_FORM);
+setEditingProductId(null);
+setProductFormMessage(
+  editingProductId
+    ? 'Product updated successfully.'
+    : 'Product created successfully.',
+);
+await loadProducts(token);
+setShowProductForm(false);
   } catch (error) {
     setProductFormError(
       error instanceof Error ? error.message : 'Unable to create product.',
