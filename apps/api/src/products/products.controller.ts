@@ -9,7 +9,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-
+import { UpdateProductDto } from './update-product.dto.js';
 import { ProductsService } from './products.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth/jwt-auth.guard.js';
 import { AdjustStockDto } from './adjust-stock.dto.js';
@@ -55,6 +55,15 @@ export class ProductsController {
   ) {
     return this.productsService.adjustStock(id, dto);
   }
+  @Patch(':id')
+@UseGuards(JwtAuthGuard)
+updateProduct(
+  @Param('id') id: string,
+  @Body() dto: UpdateProductDto,
+) {
+  return this.productsService.updateProduct(id, dto);
+}
+  
   @Delete(':id')
 @UseGuards(JwtAuthGuard)
 async deleteProduct(@Param('id') id: string) {
