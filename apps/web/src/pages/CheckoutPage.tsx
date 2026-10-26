@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, LockKeyhole, } from "lucide-react";
 import { useCartStore } from "../store/cartStore";
+import { loadRazorpay } from "../lib/razorpay";
 
 
 type CheckoutForm = {
@@ -50,6 +50,7 @@ export default function CheckoutPage() {
   }
 
 
+
 async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
 
@@ -85,47 +86,18 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 
   if (Object.keys(nextErrors).length > 0) return;
 
-if (items.length === 0) {
-  setOrderMessage("Your cart is empty. Add products before checkout.");
-  return;
-}
+  if (items.length === 0) {
+    setOrderMessage("Your cart is empty. Add products before checkout.");
+    return;
+  }
+
   setIsSubmitting(true);
 
-  try {
-    const apiBaseUrl = (
-      import.meta.env.VITE_API_URL || "http://localhost:3000"
-    ).replace(/\/+$/, "");
+  const apiBaseUrl = (
+    import.meta.env.VITE_API_URL || "http://localhost:3000"
+  ).replace(/\/+$/, "");
 
-   
-const token = sessionStorage.getItem("shopora_customer_token");
-
-if (!token) {
-  setOrderMessage("Please sign in before placing an order.");
-  return;
-}
-
-const response = await fetch(`${apiBaseUrl}/orders/customer`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({
-    customerName: form.fullName.trim(),
-    email: form.email.trim(),
-    phone: form.phone.trim(),
-    address: form.address.trim(),
-    city: form.city.trim(),
-    state: form.state.trim(),
-    postalCode: form.postalCode.trim(),
-    items: items.map((item) => ({
-      productId: String(item.id),
-      quantity: item.quantity,
-    })),
-  }),
-});
-
+  async function readResponse(response: Response) {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -133,27 +105,129 @@ const response = await fetch(`${apiBaseUrl}/orders/customer`, {
         ? result.message.join(" ")
         : result.message;
 
+      throw new Error(message || `Request failed (${response.status}).`);
+    }
+
+    return result;
+  }
+
+  try {
+    const loaded = await loadRazorpay();
+
+    if (!loaded || !window.Razorpay) {
       throw new Error(
-        message || `Order creation failed (${response.status}).`,
+        "Unable to load Razorpay Checkout. Please check your connection and try again.",
       );
     }
 
-    if (!result.orderNumber) {
-      throw new Error("The server did not return an order number.");
+    // The backend calculates the price and reserves stock.
+    const createResponse = await fetch(
+      `${apiBaseUrl}/orders/payment/create`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          customerName: form.fullName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          address: form.address.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          postalCode: form.postalCode.trim(),
+          items: items.map((item) => ({
+            productId: String(item.id),
+            quantity: item.quantity,
+          })),
+        }),
+      },
+    );
+
+    const paymentOrder = await readResponse(createResponse);
+
+    if (
+      typeof paymentOrder.keyId !== "string" ||
+      typeof paymentOrder.razorpayOrderId !== "string" ||
+      typeof paymentOrder.orderId !== "string" ||
+      typeof paymentOrder.amount !== "number"
+    ) {
+      throw new Error("The server returned incomplete payment details.");
     }
 
-    setOrderNumber(result.orderNumber);
-    clearCart();
+    const razorpay = new window.Razorpay({
+      key: paymentOrder.keyId,
+      amount: paymentOrder.amount,
+      currency: paymentOrder.currency || "INR",
+      name: "Shopora",
+      description: `Order ${paymentOrder.orderNumber}`,
+      order_id: paymentOrder.razorpayOrderId,
+      prefill: paymentOrder.prefill,
+      theme: { color: "#ea580c" },
+
+      handler: async (paymentResponse) => {
+        try {
+          setOrderMessage("Verifying your payment securely...");
+
+          const verifyResponse = await fetch(
+            `${apiBaseUrl}/orders/payment/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                orderId: paymentOrder.orderId,
+                razorpayOrderId: paymentResponse.razorpay_order_id,
+                razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                razorpaySignature: paymentResponse.razorpay_signature,
+              }),
+            },
+          );
+
+          const verified = await readResponse(verifyResponse);
+
+          if (verified.paymentStatus !== "PAID") {
+            throw new Error("Payment has not been confirmed yet.");
+          }
+
+          setOrderNumber(verified.orderNumber || paymentOrder.orderNumber);
+          setOrderMessage("");
+          clearCart();
+        } catch (error) {
+          setOrderMessage(
+            error instanceof Error
+              ? `${error.message} Do not retry payment immediately; check your order status first.`
+              : "Payment verification is pending. Check your order status before retrying.",
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+
+      modal: {
+        ondismiss: () => {
+          setIsSubmitting(false);
+          setOrderMessage(
+            "Checkout closed. If you completed payment, check your order status before trying again.",
+          );
+        },
+      },
+    });
+
+    razorpay.open();
   } catch (error) {
     setOrderMessage(
       error instanceof Error
         ? error.message
-        : "Unable to place your order. Please try again.",
+        : "Unable to start payment. Please try again.",
     );
-  } finally {
     setIsSubmitting(false);
   }
 }
+
 
 
   const fields: {
@@ -311,8 +385,8 @@ if (orderNumber) {
             </div>
 
             <div className="rounded-lg bg-orange-50 p-4 text-sm text-neutral-700">
-              Payment is not enabled yet. This step only validates delivery
-              information in your browser.
+              Your payment will be processed securely through Razorpay.
+              Your order is confirmed only after the server verifies payment.
             </div>
 
 
@@ -321,7 +395,7 @@ if (orderNumber) {
               disabled={isSubmitting}
               className="w-full rounded-lg bg-neutral-950 px-6 py-4 font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Placing order..." : "Place order"}
+              {isSubmitting ? "Processing payment..." : "Pay securely with Razorpay"}
             </button>
 
 
@@ -374,7 +448,7 @@ if (orderNumber) {
 
             <p className="mt-5 flex items-center gap-2 text-xs text-neutral-500">
               <LockKeyhole size={16} />
-              Secure payment integration will be added later.
+Secure payment powered by Razorpay.
             </p>
           </aside>
         </div>
