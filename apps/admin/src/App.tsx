@@ -127,6 +127,12 @@ function App() {
 
 const [activePage, setActivePage] = useState(getCurrentPage);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [notifications, setNotifications] = useState<Order[]>([]);
+const [showNotifications, setShowNotifications] = useState(false);
+const [soundEnabled, setSoundEnabled] = useState(false);
+
+const knownOrderIdsRef = useRef<Set<string> | null>(null);
+const audioContextRef = useRef<AudioContext | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
 const [productsLoading, setProductsLoading] = useState(false);
 const [productsError, setProductsError] = useState('');
