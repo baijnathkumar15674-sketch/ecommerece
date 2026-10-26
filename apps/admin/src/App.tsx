@@ -1576,9 +1576,12 @@ https://example.com/product-bottom.jpg`}
         type="button"
         className="secondary-button"
         disabled={productSaving}
-        onClick={() => {
+       onClick={() => {
           setShowProductForm(false);
+          setEditingProductId(null);
+          setProductForm(EMPTY_PRODUCT_FORM);
           setProductFormError('');
+          setProductFormMessage('');
         }}
       >
         Cancel
