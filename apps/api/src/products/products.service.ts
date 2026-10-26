@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import type { AdjustStockDto } from './adjust-stock.dto.js';
 import { PrismaService } from "../prisma/prisma.service.js";
 import type { CreateProductDto } from './create-product.dto.js';
+import type { UpdateProductDto } from './update-product.dto.js';
 
 @Injectable()
 export class ProductsService {
@@ -191,6 +192,95 @@ try {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
   }
+
+  async updateProduct(id: string, dto: UpdateProductDto) {
+  const existing = await this.prisma.product.findUnique({
+    where: { id },
+    include: { images: { orderBy: { sortOrder: 'asc' } } },
+  });
+
+  if (!existing) {
+    throw new NotFoundException('Product not found.');
+  }
+
+  if (dto.categoryId) {
+    const category = await this.prisma.category.findUnique({
+      where: { id: dto.categoryId },
+      select: { id: true },
+    });
+
+    if (!category) {
+      throw new BadRequestException('Please select a valid category.');
+    }
+  }
+
+  const imageUrls = dto.imageUrls !== undefined
+    ? dto.imageUrls
+    : dto.imageUrl !== undefined
+      ? (dto.imageUrl.trim() ? [dto.imageUrl.trim()] : [])
+      : undefined;
+
+  try {
+    return await this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name.trim() }),
+          ...(dto.slug !== undefined && { slug: dto.slug.trim() }),
+          ...(dto.description !== undefined && {
+            description: dto.description.trim(),
+          }),
+          ...(dto.price !== undefined && { price: dto.price }),
+          ...(dto.stock !== undefined && { stock: dto.stock }),
+          ...(dto.categoryId !== undefined && {
+            categoryId: dto.categoryId,
+          }),
+          ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+          ...(imageUrls !== undefined && {
+            imageUrl: imageUrls[0] ?? null,
+          }),
+        },
+      });
+
+      if (imageUrls !== undefined) {
+        await tx.productImage.deleteMany({
+          where: { productId: id },
+        });
+
+        if (imageUrls.length > 0) {
+          await tx.productImage.createMany({
+            data: imageUrls.map((url, index) => ({
+              productId: id,
+              url,
+              alt: `${dto.name?.trim() ?? existing.name} image ${index + 1}`,
+              isPrimary: index === 0,
+              sortOrder: index,
+            })),
+          });
+        }
+      }
+
+      return tx.product.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
+      });
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      throw new ConflictException(
+        'This product slug already exists. Choose another slug.',
+      );
+    }
+
+    throw error;
+  }
+}
   async deleteProduct(id: string) {
   const product = await this.prisma.product.findUnique({
     where: { id },
