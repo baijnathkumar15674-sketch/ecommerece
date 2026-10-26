@@ -1400,7 +1400,7 @@ async function loadStatusHistory(orderId: string) {
 
       {showProductForm && (
   <form className="product-create-form" onSubmit={createProduct}>
-    <h3>New Product</h3>
+    <h3>{editingProductId ? 'Edit Product' : 'New Product'}</h3>
     <p className="muted">
       Add a product to your catalogue and set its starting inventory.
     </p>
