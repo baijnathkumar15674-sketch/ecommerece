@@ -1696,6 +1696,15 @@ https://example.com/product-bottom.jpg`}
       disabled={stockSavingId === product.id}
     />
 
+    
+<button
+  type="button"
+  className="secondary-button"
+  onClick={() => startEditingProduct(product)}
+>
+  Edit product
+</button>
+
     <button
       type="button"
       className="secondary-button inventory-save-button"
