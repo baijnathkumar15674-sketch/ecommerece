@@ -591,6 +591,29 @@ async function loadCategories(accessToken: string) {
   }
 }
 
+  
+function startEditingProduct(product: Product) {
+  setEditingProductId(product.id);
+  setProductFormError('');
+  setProductFormMessage('');
+
+  setProductForm({
+    name: product.name,
+    slug: product.slug,
+    description: product.description ?? '',
+    price: String(product.price),
+    stock: String(product.stock),
+    categoryId: product.categoryId,
+    imageUrlsText: (
+      product.images?.map((image) => image.url) ??
+      (product.imageUrl ? [product.imageUrl] : [])
+    ).join('\n'),
+  });
+
+  setShowProductForm(true);
+  void loadCategories(token);
+}
+
 async function createProduct(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
   setProductFormError('');
