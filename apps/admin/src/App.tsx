@@ -1583,7 +1583,11 @@ https://example.com/product-bottom.jpg`}
         className="primary-button"
         disabled={productSaving || categoriesLoading || categories.length === 0}
       >
-        {productSaving ? 'Saving product…' : 'Save Product'}
+        {productSaving
+  ? 'Saving…'
+  : editingProductId
+    ? 'Save Changes'
+    : 'Save Product'}
       </button>
     </div>
   </form>
