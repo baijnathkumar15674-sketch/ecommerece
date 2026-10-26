@@ -1,13 +1,16 @@
 
 import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
+import { useAuth } from "../auth/auth";
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const subtotal = useCartStore((state) => state.getSubtotal());
+  const { customer, loading } = useAuth();
+  const navigate = useNavigate();
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-IN", {
@@ -15,6 +18,61 @@ export default function CartPage() {
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
+
+  const handleCheckout = () => {
+    if (loading) return;
+
+    if (!customer) {
+      navigate("/login", {
+        state: { from: "/checkout" },
+      });
+      return;
+    }
+
+    navigate("/checkout");
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-neutral-50 p-10 text-center">
+        Checking login...
+      </main>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <main className="min-h-screen bg-neutral-50 px-4 py-20 text-center">
+        <ShoppingBag className="mx-auto text-neutral-400" size={48} />
+        <h1 className="mt-5 text-2xl font-bold text-neutral-950">
+          Login Required
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-neutral-600">
+          Cart, checkout aur payment use karne ke liye pehle apne account mein
+          login karein.
+        </p>
+        <button
+          type="button"
+          onClick={() =>
+            navigate("/login", {
+              state: { from: "/cart" },
+            })
+          }
+          className="shopora-primary-button mt-6 rounded-lg px-6 py-3 font-semibold"
+        >
+          Login to Continue
+        </button>
+        <div>
+          <Link
+            to="/products"
+            className="mt-5 inline-block text-sm text-neutral-600 hover:text-orange-600"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-neutral-50">
@@ -146,18 +204,17 @@ export default function CartPage() {
                 </p>
               </div>
 
-              <Link
-                to="/checkout"
+              <button
+                type="button"
+                onClick={handleCheckout}
                 className="shopora-primary-button mt-6 flex w-full items-center justify-center rounded-lg px-5 py-4 font-semibold transition-colors"
               >
                 Proceed to checkout
-              </Link>
+              </button>
 
               <button
                 type="button"
-                onClick={() =>
-                  useCartStore.getState().clearCart()
-                }
+                onClick={() => useCartStore.getState().clearCart()}
                 className="shopora-secondary-button mt-3 w-full rounded-lg px-5 py-3 text-sm font-semibold transition-colors"
               >
                 Clear cart
