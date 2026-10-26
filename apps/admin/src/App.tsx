@@ -1008,6 +1008,102 @@ async function loadStatusHistory(orderId: string) {
   }
 
 
+  const playOrderAlert = async () => {
+    if (!soundEnabled) return;
+
+    try {
+      let audioContext = audioContextRef.current;
+
+      if (!audioContext) {
+        audioContext = new AudioContext();
+        audioContextRef.current = audioContext;
+      }
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(660, audioContext.currentTime + 0.2);
+
+      gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.25, audioContext.currentTime + 0.03);
+      gain.gain.setValueAtTime(0.001, audioContext.currentTime + 0.45);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+      console.error('Order notification sound failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    let cancelled = false;
+
+    const checkForNewOrders = async () => {
+      try {
+        const response = await fetch(`${API_URL}/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) return;
+
+        const data: unknown = await response.json();
+        if (!Array.isArray(data) || cancelled) return;
+
+        const latestOrders = data as Order[];
+        const knownIds = knownOrderIdsRef.current;
+
+        if (knownIds === null) {
+          knownOrderIdsRef.current = new Set(
+            latestOrders.map((order) => order.id),
+          );
+          setOrders(latestOrders);
+          return;
+        }
+
+        const newOrders = latestOrders.filter(
+          (order) => !knownIds.has(order.id),
+        );
+
+        latestOrders.forEach((order) => knownIds.add(order.id));
+
+        if (newOrders.length > 0) {
+          setNotifications((current) => [
+            ...newOrders,
+            ...current,
+          ]);
+
+          void playOrderAlert();
+        }
+
+        setOrders(latestOrders);
+      } catch (error) {
+        console.error('New order check failed:', error);
+      }
+    };
+
+    void checkForNewOrders();
+
+    const intervalId = window.setInterval(() => {
+      void checkForNewOrders();
+    }, 10000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [token, soundEnabled]);
+
   useEffect(() => {
     if (token) void loadOrders(token);
   }, [token]);
