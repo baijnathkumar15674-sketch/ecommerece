@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, LockKeyhole, } from "lucide-react";
 import { useCartStore } from "../store/cartStore";
 import { loadRazorpay } from "../lib/razorpay";
+import { useAuth } from "../auth/auth";
+import { useNavigate } from "react-router-dom";
 
 
 type CheckoutForm = {
@@ -27,6 +29,8 @@ const initialForm: CheckoutForm = {
 
 export default function CheckoutPage() {
   const items = useCartStore((store) => store.items);
+  const { customer, loading } = useAuth();
+  const navigate = useNavigate();
   const subtotal = useCartStore((store) => store.getSubtotal());
   const clearCart = useCartStore((store) => store.clearCart);
 
@@ -36,6 +40,36 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
 
+  if (loading) {
+  return (
+    <main className="p-10 text-center">
+      Checking login...
+    </main>
+  );
+}
+
+if (!customer) {
+  return (
+    <main className="p-10 text-center">
+      <h1 className="text-2xl font-bold">
+        Login Required
+      </h1>
+      <p className="mt-3">
+        Checkout aur payment ke liye pehle login karein.
+      </p>
+      <button
+        onClick={() =>
+          navigate("/login", {
+            state: { from: "/checkout" },
+          })
+        }
+        className="mt-5 rounded-lg bg-black px-6 py-3 text-white"
+      >
+        Login to Continue
+      </button>
+    </main>
+  );
+}
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
