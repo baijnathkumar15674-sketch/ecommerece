@@ -644,8 +644,12 @@ if (imageUrls.some((url) => !/^https?:\/\/\S+$/i.test(url))) {
   setProductSaving(true);
 
   try {
-    const response = await fetch(`${API_URL}/products`, {
-      method: 'POST',
+   const response = await fetch(
+  editingProductId
+    ? `${API_URL}/products/${encodeURIComponent(editingProductId)}`
+    : `${API_URL}/products`,
+  {
+    method: editingProductId ? 'PATCH' : 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
