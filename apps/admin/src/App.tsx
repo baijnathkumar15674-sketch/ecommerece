@@ -1466,9 +1466,123 @@ async function loadStatusHistory(orderId: string) {
 
           <div className="topbar-actions">
             <span className="admin-label">Administrator</span>
-            <button className="icon-button notification-button" aria-label="Notifications">
-              <Bell size={19} />
-            </button>
+            
+<div style={{ position: 'relative' }}>
+  <button
+    type="button"
+    className={`icon-button notification-button ${
+      notifications.length > 0 ? 'notification-ringing' : ''
+    }`}
+    aria-label={`Notifications: ${notifications.length} new orders`}
+    title="Notifications"
+    onClick={() => setShowNotifications((current) => !current)}
+  >
+    <Bell size={19} />
+    {notifications.length > 0 && (
+      <span className="notification-count">
+        {notifications.length > 99 ? '99+' : notifications.length}
+      </span>
+    )}
+  </button>
+
+  {showNotifications && (
+    <div
+      style={{
+        position: 'absolute',
+        right: 0,
+        top: '48px',
+        width: '320px',
+        maxWidth: '85vw',
+        background: '#fff',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
+        padding: '16px',
+        zIndex: 1000,
+        color: '#172033',
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '8px',
+      }}>
+        <strong>Order Notifications</strong>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => setNotifications([])}
+        >
+          Clear
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className="secondary-button"
+        style={{ marginTop: '12px', width: '100%' }}
+        onClick={() => {
+          if (!audioContextRef.current) {
+            audioContextRef.current = new AudioContext();
+          }
+
+          void audioContextRef.current.resume().then(() => {
+            setSoundEnabled(true);
+            const context = audioContextRef.current;
+            if (!context) return;
+
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+
+            oscillator.frequency.value = 880;
+            gain.gain.value = 0.15;
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.25);
+          });
+        }}
+      >
+        {soundEnabled ? '✓ Sound Enabled' : '🔔 Enable Notification Sound'}
+      </button>
+
+      <div style={{ marginTop: '12px', maxHeight: '280px', overflowY: 'auto' }}>
+        {notifications.length === 0 ? (
+          <p className="muted">No new order notifications.</p>
+        ) : (
+          notifications.map((order) => (
+            <div
+              key={order.id}
+              style={{
+                padding: '12px 0',
+                borderBottom: '1px solid #edf0f5',
+              }}
+            >
+              <strong>New order: {order.orderNumber}</strong>
+              <p style={{ margin: '5px 0' }}>{order.customerName}</p>
+              <p style={{ margin: 0 }}>
+                ₹{Number(order.subtotal || 0).toLocaleString('en-IN')}
+              </p>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setShowNotifications(false);
+                  window.location.hash = 'orders';
+                  void openOrderDetails(order.id);
+                }}
+              >
+                View order
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )}
+</div>
+
             <div className="avatar">A</div>
             <ChevronDown size={16} className="muted-icon" />
           </div>
