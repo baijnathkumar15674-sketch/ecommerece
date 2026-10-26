@@ -1,4 +1,13 @@
-```tsx
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
 declare global {
   interface Window {
     google?: {
@@ -10,15 +19,6 @@ declare global {
     };
   }
 }
-
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
 
 // SHOPORA production backend
 const API_BASE_URL = (
