@@ -130,6 +130,7 @@ const [productsLoading, setProductsLoading] = useState(false);
 const [productsError, setProductsError] = useState('');
 const [productSearch, setProductSearch] = useState('');
 const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
 const [categories, setCategories] = useState<Category[]>([]);
 const [categoriesLoading, setCategoriesLoading] = useState(false);
 const [productForm, setProductForm] =
