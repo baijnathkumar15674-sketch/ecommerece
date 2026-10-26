@@ -1,8 +1,10 @@
-
+import { CreatePaymentOrderDto } from './create-payment-order.dto.js';
+import { VerifyPaymentDto } from './verify-payment.dto.js';
 import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -11,6 +13,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './create-order.dto.js';
@@ -75,6 +78,31 @@ findOne(@Param('id') id: string) {
       request.user.sub,
     );
   }
+
+@Post('payment/create')
+@HttpCode(HttpStatus.CREATED)
+createPaymentOrder(@Body() dto: CreatePaymentOrderDto) {
+  return this.ordersService.createPaymentOrder(dto);
+}
+
+@Post('payment/webhook')
+@HttpCode(HttpStatus.OK)
+handleRazorpayWebhook(
+  @Req() request: RawBodyRequest<Request>,
+  @Headers('x-razorpay-signature') signature?: string,
+) {
+  return this.ordersService.handleRazorpayWebhook(
+    request.rawBody,
+    signature,
+    request.body,
+  );
+}
+
+@Post('payment/verify')
+@HttpCode(HttpStatus.OK)
+verifyPayment(@Body() dto: VerifyPaymentDto) {
+  return this.ordersService.verifyPayment(dto);
+}
 
 
   @Post()
