@@ -56,6 +56,8 @@ type Product = {
   category: {
     name: string;
   };
+  categoryId: string;
+images?: { url: string }[];
 };
 type Category = {
   id: string;
